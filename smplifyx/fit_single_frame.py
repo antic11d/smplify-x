@@ -43,7 +43,13 @@ import PIL.Image as pil_img
 from optimizers import optim_factory
 
 import fitting
-from human_body_prior.tools.model_loader import load_vposer
+# from human_body_prior.tools.model_loader import load_vposer
+from human_body_prior.tools.model_loader import load_model
+from human_body_prior.models.vposer_model import VPoser
+import custom
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).parent.parent
 
 
 def fit_single_frame(img,
@@ -185,7 +191,14 @@ def fit_single_frame(img,
                                      requires_grad=True)
 
         vposer_ckpt = osp.expandvars(vposer_ckpt)
-        vposer, _ = load_vposer(vposer_ckpt, vp_model='snapshot')
+        # Vposer v2 load
+        # vposer, _ = load_model(vposer_ckpt, model_code=VPoser, remove_words_in_model_weights='vp_model.', disable_grad=True)
+
+        # Vposer v1 load
+        # vposer, _ = load_vposer(vposer_ckpt, vp_model='snapshot')
+
+        # Custom prior model
+        vposer = custom.load_model(PROJECT_ROOT / 'data/custom_prior', 'model_best.pt')
         vposer = vposer.to(device=device)
         vposer.eval()
 
@@ -483,9 +496,17 @@ def fit_single_frame(img,
             pickle.dump(results[min_idx]['result'], result_file, protocol=2)
 
     if save_meshes or visualize:
+        # Vposer v2 inference
+        # body_pose = (vposer.decode(pose_embedding).get('pose_body')).reshape(1, -1) if use_vposer else None
+
+        # Vposer v1 inference
+        # body_pose = vposer.decode(
+        #     pose_embedding, output_type='aa').view(
+        #         1, -1) if use_vposer else None
+        
+        # Custom network inference
         body_pose = vposer.decode(
-            pose_embedding,
-            output_type='aa').view(1, -1) if use_vposer else None
+            pose_embedding).view(1, -1)[:, 3:66] if use_vposer else None
 
         model_type = kwargs.get('model_type', 'smpl')
         append_wrists = model_type == 'smpl' and use_vposer
