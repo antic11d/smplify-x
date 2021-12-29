@@ -49,7 +49,7 @@ from human_body_prior.models.vposer_model import VPoser
 import custom
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.absolute()
 
 
 def fit_single_frame(img,
@@ -189,7 +189,7 @@ def fit_single_frame(img,
         pose_embedding = torch.zeros([batch_size, 32],
                                      dtype=dtype, device=device,
                                      requires_grad=True)
-
+        # CHANGE
         vposer_ckpt = osp.expandvars(vposer_ckpt)
         # Vposer v2 load
         # vposer, _ = load_model(vposer_ckpt, model_code=VPoser, remove_words_in_model_weights='vp_model.', disable_grad=True)
@@ -198,7 +198,8 @@ def fit_single_frame(img,
         # vposer, _ = load_vposer(vposer_ckpt, vp_model='snapshot')
 
         # Custom prior model
-        vposer = custom.load_model(PROJECT_ROOT / 'data/custom_prior', 'model_best.pt')
+        vposer = custom.load_model(PROJECT_ROOT / 'data' / 'custom_amass_prior/b256_beta1e-04', 'model_1456300.pt')
+
         vposer = vposer.to(device=device)
         vposer.eval()
 
@@ -455,6 +456,11 @@ def fit_single_frame(img,
                     body_model,
                     pose_embedding=pose_embedding, vposer=vposer,
                     use_vposer=use_vposer)
+                if final_loss_val is None:
+                    print('------------------------------------')
+                    print('\t\nnan, I\'m gonna error soon...')
+                    print('------------------------------------')
+                    continue
 
                 if interactive:
                     if use_cuda and torch.cuda.is_available():
@@ -496,6 +502,7 @@ def fit_single_frame(img,
             pickle.dump(results[min_idx]['result'], result_file, protocol=2)
 
     if save_meshes or visualize:
+        # CHANGE
         # Vposer v2 inference
         # body_pose = (vposer.decode(pose_embedding).get('pose_body')).reshape(1, -1) if use_vposer else None
 

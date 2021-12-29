@@ -198,12 +198,17 @@ def main(**args):
     # Add a fake batch dimension for broadcasting
     joint_weights.unsqueeze_(dim=0)
 
-    for idx, data in enumerate(dataset_obj):
 
+    nans = []
+    for idx, data in enumerate(dataset_obj):
+        if idx in nans:
+            continue
+        if idx <= nans[-1]:
+            continue
         img = data['img']
         fn = data['fn']
         keypoints = data['keypoints']
-        print('Processing: {}'.format(data['img_path']))
+        print('Processing: {}, index: {}'.format(data['img_path'], idx))
 
         curr_result_folder = osp.join(result_folder, fn)
         if not osp.exists(curr_result_folder):

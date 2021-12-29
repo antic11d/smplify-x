@@ -82,12 +82,12 @@ mesh_fns.sort()
 
 key_handler = KeyHandler(mesh_fns)
 registered_keys = {'q': key_handler.quit_viewer,
-                   '+': key_handler.next_mesh, '-': key_handler.prev_mesh}
+                   'n': key_handler.next_mesh, 'p': key_handler.prev_mesh}
 mv = MeshViewer(registered_keys=registered_keys)
 
 print('Press q to exit')
-print('Press + to open next mesh')
-print('Press - to open previous mesh')
+print('Press n to open next mesh')
+print('Press p to open previous mesh')
 
 close = False
 while True:
